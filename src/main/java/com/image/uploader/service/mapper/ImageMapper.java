@@ -3,9 +3,9 @@ package com.image.uploader.service.mapper;
 
 import com.image.uploader.service.entity.Image;
 import com.image.uploader.service.model.responseDto.ImageUploadResponse;
-import lombok.experimental.UtilityClass;
+import org.springframework.stereotype.Component;
 
-@UtilityClass
+@Component
 public class ImageMapper {
 
 
