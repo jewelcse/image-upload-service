@@ -15,11 +15,7 @@ public class Image {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    private String fileName;
-
-    private String originalFilePath;
-
-    private String resizedFilePath;
+    private String originalFileName;
+    private String thumbnailFileName;
 
 }

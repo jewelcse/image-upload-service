@@ -11,24 +11,31 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+
 @RestController
 @RequestMapping("/api/images")
 @AllArgsConstructor
 public class ImageUploadController {
 
     private final ImageService imageService;
+
     @PostMapping()
-    public ResponseEntity<?> uploadImage(@RequestParam("file") MultipartFile file) {
-        try {
+    public ResponseEntity<?> uploadImages(@RequestParam("files") MultipartFile[] files) {
+
+        for (MultipartFile file : files) {
             String contentType = file.getContentType();
             if (!contentType.startsWith("image/")) {
                 throw new IllegalArgumentException("Invalid file type. Only image files are allowed.");
             }
-            imageService.upload(file);
+        }
+        try {
+            imageService.uploads(files);
             return ResponseEntity.ok().body("File uploaded successfully!");
-        } catch (Exception e) {
+        } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to upload file!");
         }
+
     }
 
 

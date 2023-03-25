@@ -12,9 +12,8 @@ public class ImageMapper {
     public ImageUploadResponse toImageUploadResponse(Image image) {
         if (image == null) return null;
         return ImageUploadResponse.builder()
-                .fileName(image.getFileName())
-                .originalFilePath(image.getOriginalFilePath())
-                .resizedFilePath(image.getResizedFilePath())
+                .originalFilePath(image.getOriginalFileName())
+                .thumbnailFilePath(image.getThumbnailFileName())
                 .build();
     }
 
