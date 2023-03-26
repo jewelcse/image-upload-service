@@ -1,0 +1,76 @@
+{
+	"info": {
+		"_postman_id": "c3c497d5-3414-4c49-970a-cd5acbb7f12b",
+		"name": "Image-Uploader",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "upload-image",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "/C:/Users/jewel/OneDrive/Pictures/download.jpg"
+						}
+					]
+				},
+				"url": {
+					"raw": "localhost:8080/api/images",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"images"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "view-image by image name",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "/C:/Users/jewel/OneDrive/Pictures/download.jpg"
+						}
+					]
+				},
+				"url": {
+					"raw": "localhost:8080/api/images?fileName=1679760375785_q1.png",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"images"
+					],
+					"query": [
+						{
+							"key": "fileName",
+							"value": "1679760375785_q1.png"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
