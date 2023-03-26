@@ -9,12 +9,14 @@ import com.image.uploader.service.producer.ImageResizeEventProduce;
 import com.image.uploader.service.repository.ImageRepository;
 import com.image.uploader.service.service.ImageService;
 import lombok.AllArgsConstructor;
+import net.coobird.thumbnailator.Thumbnails;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
@@ -26,19 +28,17 @@ import java.util.*;
 @Service
 public class ImageServiceImpl implements ImageService {
 
-
     private final Path uploadFolder = Paths.get("uploads");
-
+    private final Path thumbnailFolder = Paths.get("thumbnails");
     private final ImageRepository imageRepository;
     private final ImageMapper imageMapper;
-
     private final ImageResizeEventProduce messageProducer;
-
 
     @Override
     public void folderInitialize() {
         try {
             Files.createDirectory(uploadFolder);
+            Files.createDirectory(thumbnailFolder);
         } catch (IOException e) {
             throw new RuntimeException("Could not created the folder!");
         }
@@ -48,32 +48,24 @@ public class ImageServiceImpl implements ImageService {
     public ImageUploadResponse save(MultipartFile file) {
         Image newImage = new Image();
         Image savedImage;
+        String filename;
+        String finalFileName;
         try {
             long timeInMillis = new Date().getTime();
-            String filename = Objects.requireNonNull(file.getOriginalFilename()).toLowerCase().replaceAll(" ", "_");
-            String finalFileName = timeInMillis + "_" + filename;
+            filename = Objects.requireNonNull(file.getOriginalFilename()).toLowerCase().replaceAll(" ", "_");
+            finalFileName = timeInMillis + "_" + filename;
             Files.copy(file.getInputStream(), this.uploadFolder.resolve(finalFileName));
-            // set the image values
             newImage.setOriginalFileName(finalFileName);
-            // save image to db
             savedImage = imageRepository.save(newImage);
-
         } catch (Exception e) {
             throw new RuntimeException("Could not store the file. Error: " + e.getMessage());
         }
         if (savedImage.getId() != null) {
-            //todo: publish event for every image
-            try {
-                ImageResizeRequest request = ImageResizeRequest.builder()
-                        .id(savedImage.getId())
-                        .imageData(file.getBytes())
-                        .build();
-                messageProducer.resizeEventPublish(request);
-            } catch (IOException e) {
-                //todo: change the exception with appropriate
-                throw new RuntimeException("Could not store the file. Error: " + e.getMessage());
-            }
-
+            ImageResizeRequest request = ImageResizeRequest.builder()
+                    .id(savedImage.getId())
+                    .originalFileName(finalFileName)
+                    .build();
+            messageProducer.resizeEventPublish(request);
         }
         return imageMapper.toImageUploadResponse(savedImage);
     }
@@ -89,15 +81,16 @@ public class ImageServiceImpl implements ImageService {
 
     @Override
     public Resource loadImage(String fileName) {
-        Boolean doesExist = imageRepository.existsByOriginalFileName(fileName);
+        String imageType = fileName.substring(0, 9);
+        Boolean doesExist = imageType.equals("thumbnail") ? imageRepository.existsByThumbnailFileName(fileName)
+                : imageRepository.existsByOriginalFileName(fileName);
         if (!doesExist) {
             throw new ImageFileNotFoundException("Image Not found!");
         }
         try {
-
-            Path file = uploadFolder.resolve(fileName);
+            Path file = imageType.equals("thumbnail") ? thumbnailFolder.resolve(fileName)
+                    : uploadFolder.resolve(fileName);
             Resource resource = new UrlResource(file.toUri());
-
             if (resource.exists() || resource.isReadable()) {
                 return resource;
             } else {
@@ -105,6 +98,42 @@ public class ImageServiceImpl implements ImageService {
             }
         } catch (MalformedURLException e) {
             throw new RuntimeException("Error: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void resizeImage(ImageResizeRequest request) {
+        try {
+            Resource loadedImage = loadImage(request.getOriginalFileName());
+            String thumbnailFileName = "thumbnail_" + request.getOriginalFileName();
+            Path thumbnailPath = thumbnailFolder.resolve(thumbnailFileName).normalize();
+            if (Files.exists(thumbnailPath)) {
+                return;
+            }
+            BufferedImage image = ImageIO.read(loadedImage.getInputStream());
+            BufferedImage thumbnail = Thumbnails.of(image)
+                    .size(200, 200)
+                    .asBufferedImage();
+            String[] writerFormats = ImageIO.getWriterFormatNames();
+            String format = "";
+            for (String writerFormat : writerFormats) {
+                if (loadedImage.getFilename().endsWith(writerFormat)) {
+                    format = writerFormat;
+                    break;
+                }
+            }
+            if (format.isEmpty()) {
+                throw new RuntimeException("Could not determine image format!");
+            }
+            if (ImageIO.write(thumbnail, format, thumbnailPath.toFile())) {
+                Optional<Image> saveImage = imageRepository.findById(request.getId());
+                if (saveImage.isPresent()) {
+                    saveImage.get().setThumbnailFileName(thumbnailFileName);
+                    imageRepository.save(saveImage.get());
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Could not resize the image. Error: " + e.getMessage());
         }
     }
 }

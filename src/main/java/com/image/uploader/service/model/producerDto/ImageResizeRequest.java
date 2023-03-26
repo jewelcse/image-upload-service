@@ -10,9 +10,8 @@ import java.io.Serializable;
 @Getter
 @ToString
 @Builder
-public class ImageResizeRequest implements Serializable {
-    private static final long serialVersionUID = 4658763458638335614L;
-
+public class ImageResizeRequest{
     private Long id;
-    private byte[] imageData;
+    private String originalFileName;
+
 }

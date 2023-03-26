@@ -9,7 +9,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 
-import static com.image.uploader.service.util.ApplicationConstraints.IMAGE_RESIZE_TOPIC;
+import static com.image.uploader.service.util.ApplicationConstants.IMAGE_RESIZE_TOPIC;
 
 @RequiredArgsConstructor
 @Service

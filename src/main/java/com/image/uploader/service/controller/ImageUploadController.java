@@ -61,4 +61,7 @@ public class ImageUploadController {
                 .body(resource);
     }
 
+
+    //todo: notify api
+
 }
