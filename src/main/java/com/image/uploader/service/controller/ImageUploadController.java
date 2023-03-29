@@ -11,12 +11,14 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.net.URLConnection;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("/api/images")
@@ -24,6 +26,7 @@ import java.util.List;
 public class ImageUploadController {
 
     private final ImageService imageService;
+
 
     @PostMapping
     public ResponseEntity<?> uploadImages(@RequestParam("files") MultipartFile[] files) {
@@ -35,7 +38,7 @@ public class ImageUploadController {
             }
         }
         try {
-            List<ImageUploadResponse> responses = imageService.uploads(files);
+           List<ImageUploadResponse> responses = imageService.uploads(files);
             return ResponseEntity.ok().body(responses);
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to upload file!");

@@ -12,6 +12,7 @@ import lombok.AllArgsConstructor;
 import net.coobird.thumbnailator.Thumbnails;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -23,6 +24,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 
 @AllArgsConstructor
 @Service
@@ -44,6 +47,7 @@ public class ImageServiceImpl implements ImageService {
         }
     }
 
+    @Async
     @Override
     public ImageUploadResponse save(MultipartFile file) {
         Image newImage = new Image();
@@ -54,7 +58,9 @@ public class ImageServiceImpl implements ImageService {
             long timeInMillis = new Date().getTime();
             filename = Objects.requireNonNull(file.getOriginalFilename()).toLowerCase().replaceAll(" ", "_");
             finalFileName = timeInMillis + "_" + filename;
+            //
             Files.copy(file.getInputStream(), this.uploadFolder.resolve(finalFileName));
+            //
             newImage.setOriginalFileName(finalFileName);
             savedImage = imageRepository.save(newImage);
         } catch (Exception e) {
@@ -69,6 +75,7 @@ public class ImageServiceImpl implements ImageService {
         }
         return imageMapper.toImageUploadResponse(savedImage);
     }
+
 
     @Override
     public List<ImageUploadResponse> uploads(MultipartFile[] files) {
