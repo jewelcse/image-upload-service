@@ -21,9 +21,14 @@ public class ImageResizeEventConsume {
             topics = IMAGE_RESIZE_TOPIC,
             groupId = IMAGE_RESIZE_GROUP
     )
-    public void resizeEventConsume(ImageResizeRequest request){
-        imageService.resizeImage(request);
-        //todo: notify client after resizing
+    public void resizeEventConsume(ImageResizeRequest request) {
+        try {
+            imageService.resizeImage(request);
+            //todo: notify client after resizing
+        } catch (Exception e) {
+
+        }
+
     }
 
 }

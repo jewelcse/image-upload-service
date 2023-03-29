@@ -18,7 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -54,23 +54,27 @@ public class ImageServiceImpl implements ImageService {
         Image savedImage;
         String filename;
         String finalFileName;
-        try {
-            long timeInMillis = new Date().getTime();
-            filename = Objects.requireNonNull(file.getOriginalFilename()).toLowerCase().replaceAll(" ", "_");
-            finalFileName = timeInMillis + "_" + filename;
-            //
-            Files.copy(file.getInputStream(), this.uploadFolder.resolve(finalFileName));
-            //
-            newImage.setOriginalFileName(finalFileName);
-            savedImage = imageRepository.save(newImage);
-        } catch (Exception e) {
+        long timeInMillis = new Date().getTime();
+        filename = Objects.requireNonNull(file.getOriginalFilename()).toLowerCase().replaceAll(" ", "_");
+        finalFileName = timeInMillis + "_" + filename;
+        //
+        //Files.copy(file.getInputStream(), this.uploadFolder.resolve(finalFileName));
+        //
+        try (InputStream inputStream = file.getInputStream(); BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream); OutputStream outputStream = new FileOutputStream(this.uploadFolder.resolve(finalFileName).toFile()); BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
+
+            byte[] buffer = new byte[4096]; // Use a buffer of 4KB
+            int bytesRead;
+            while ((bytesRead = bufferedInputStream.read(buffer)) != -1) {
+                bufferedOutputStream.write(buffer, 0, bytesRead);
+            }
+        } catch (IOException e) {
             throw new RuntimeException("Could not store the file. Error: " + e.getMessage());
         }
+        newImage.setOriginalFileName(finalFileName);
+        savedImage = imageRepository.save(newImage);
+
         if (savedImage.getId() != null) {
-            ImageResizeRequest request = ImageResizeRequest.builder()
-                    .id(savedImage.getId())
-                    .originalFileName(finalFileName)
-                    .build();
+            ImageResizeRequest request = ImageResizeRequest.builder().id(savedImage.getId()).originalFileName(finalFileName).build();
             messageProducer.resizeEventPublish(request);
         }
         return imageMapper.toImageUploadResponse(savedImage);
@@ -89,14 +93,12 @@ public class ImageServiceImpl implements ImageService {
     @Override
     public Resource loadImage(String fileName) {
         String imageType = fileName.substring(0, 9);
-        Boolean doesExist = imageType.equals("thumbnail") ? imageRepository.existsByThumbnailFileName(fileName)
-                : imageRepository.existsByOriginalFileName(fileName);
+        Boolean doesExist = imageType.equals("thumbnail") ? imageRepository.existsByThumbnailFileName(fileName) : imageRepository.existsByOriginalFileName(fileName);
         if (!doesExist) {
             throw new ImageFileNotFoundException("Image Not found!");
         }
         try {
-            Path file = imageType.equals("thumbnail") ? thumbnailFolder.resolve(fileName)
-                    : uploadFolder.resolve(fileName);
+            Path file = imageType.equals("thumbnail") ? thumbnailFolder.resolve(fileName) : uploadFolder.resolve(fileName);
             Resource resource = new UrlResource(file.toUri());
             if (resource.exists() || resource.isReadable()) {
                 return resource;
@@ -118,9 +120,7 @@ public class ImageServiceImpl implements ImageService {
                 return;
             }
             BufferedImage image = ImageIO.read(loadedImage.getInputStream());
-            BufferedImage thumbnail = Thumbnails.of(image)
-                    .size(200, 200)
-                    .asBufferedImage();
+            BufferedImage thumbnail = Thumbnails.of(image).size(200, 200).asBufferedImage();
             String[] writerFormats = ImageIO.getWriterFormatNames();
             String format = "";
             for (String writerFormat : writerFormats) {
