@@ -113,6 +113,7 @@ public class ImageServiceImpl implements ImageService {
         }
     }
 
+    @Async
     @Override
     public void resizeImage(ImageResizeRequest request) {
         try {
