@@ -28,5 +28,6 @@ public class ImageUploaderServiceApplication implements CommandLineRunner {
 			initializedFile.createNewFile();
 		}
 
+
 	}
 }

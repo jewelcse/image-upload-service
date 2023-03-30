@@ -11,6 +11,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -23,7 +26,6 @@ import java.util.List;
 public class ImageUploadController {
 
     private final ImageService imageService;
-
 
     @PostMapping
     public ResponseEntity<?> uploadImages(@RequestParam("files") MultipartFile[] files) {
@@ -61,7 +63,5 @@ public class ImageUploadController {
                 .body(resource);
     }
 
-
-    //todo: notify api
 
 }
