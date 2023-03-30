@@ -20,10 +20,12 @@ public class ImageResizeEventConsume {
     private final ImageService imageService;
     private final SimpMessagingTemplate messagingTemplate;
 
+
     @KafkaListener(
             topics = IMAGE_RESIZE_TOPIC,
             groupId = IMAGE_RESIZE_GROUP
     )
+
     public void resizeEventConsume(ImageResizeRequest request) {
         try {
             imageService.resizeImage(request);
@@ -31,6 +33,7 @@ public class ImageResizeEventConsume {
             String message = "Image Resize Successfully completed!";
             String jsonMessage = new ObjectMapper().writeValueAsString(message);
             messagingTemplate.convertAndSend("/topic/messages", jsonMessage);
+
         } catch (Exception e) {
 
         }

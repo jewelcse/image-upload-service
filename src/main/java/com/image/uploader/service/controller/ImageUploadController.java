@@ -27,7 +27,6 @@ public class ImageUploadController {
 
     private final ImageService imageService;
 
-
     @PostMapping
     public ResponseEntity<?> uploadImages(@RequestParam("files") MultipartFile[] files) {
 
@@ -63,5 +62,4 @@ public class ImageUploadController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
                 .body(resource);
     }
-
 }
