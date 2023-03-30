@@ -6,12 +6,14 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.web.socket.config.annotation.EnableWebSocket;
 
 import java.io.File;
 
 @SpringBootApplication
 @EnableAsync
 @AllArgsConstructor
+@EnableWebSocket
 public class ImageUploaderServiceApplication implements CommandLineRunner {
 
 	private final ImageService imageService;
@@ -27,6 +29,7 @@ public class ImageUploaderServiceApplication implements CommandLineRunner {
 			imageService.folderInitialize();;
 			initializedFile.createNewFile();
 		}
+
 
 	}
 }

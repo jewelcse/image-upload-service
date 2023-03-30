@@ -11,6 +11,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,7 +27,7 @@ public class ImageUploadController {
 
     private final ImageService imageService;
 
-
+    private final SimpMessagingTemplate messagingTemplate;
     @PostMapping
     public ResponseEntity<?> uploadImages(@RequestParam("files") MultipartFile[] files) {
 
@@ -62,6 +65,10 @@ public class ImageUploadController {
     }
 
 
-    //todo: notify api
+    @GetMapping("/send/{message}")
+    public void greeting(@PathVariable String message) {
+        System.out.println(message);
+        messagingTemplate.convertAndSend("/topic/messages", message);
+    }
 
 }
