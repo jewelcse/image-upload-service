@@ -27,7 +27,7 @@ public class ImageUploadController {
 
     private final ImageService imageService;
 
-    private final SimpMessagingTemplate messagingTemplate;
+
     @PostMapping
     public ResponseEntity<?> uploadImages(@RequestParam("files") MultipartFile[] files) {
 
@@ -62,13 +62,6 @@ public class ImageUploadController {
                 .contentType(MediaType.parseMediaType(contentType))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
                 .body(resource);
-    }
-
-
-    @GetMapping("/send/{message}")
-    public void greeting(@PathVariable String message) {
-        System.out.println(message);
-        messagingTemplate.convertAndSend("/topic/messages", message);
     }
 
 }
