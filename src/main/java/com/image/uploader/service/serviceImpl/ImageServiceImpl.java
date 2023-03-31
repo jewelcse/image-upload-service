@@ -60,7 +60,10 @@ public class ImageServiceImpl implements ImageService {
         //
         //Files.copy(file.getInputStream(), this.uploadFolder.resolve(finalFileName));
         //
-        try (InputStream inputStream = file.getInputStream(); BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream); OutputStream outputStream = new FileOutputStream(this.uploadFolder.resolve(finalFileName).toFile()); BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
+        try (InputStream inputStream = file.getInputStream();
+             BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
+             OutputStream outputStream = new FileOutputStream(this.uploadFolder.resolve(finalFileName).toFile());
+             BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream)) {
 
             byte[] buffer = new byte[4096]; // Use a buffer of 4KB
             int bytesRead;

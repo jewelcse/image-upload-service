@@ -13,7 +13,6 @@ public class ImageMapper {
         if (image == null) return null;
         return ImageUploadResponse.builder()
                 .originalFileName(image.getOriginalFileName())
-                .thumbnailFileName(image.getThumbnailFileName())
                 .build();
     }
 
