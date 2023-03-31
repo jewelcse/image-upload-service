@@ -73,6 +73,7 @@ public class ImageServiceImpl implements ImageService {
         } catch (IOException e) {
             throw new RuntimeException("Could not store the file. Error: " + e.getMessage());
         }
+        newImage.setImageTitle(file.getOriginalFilename());
         newImage.setOriginalFileName(finalFileName);
         savedImage = imageRepository.save(newImage);
 
@@ -113,6 +114,41 @@ public class ImageServiceImpl implements ImageService {
         }
     }
 
+//    @Async
+//    @Override
+//    public void resizeImage(ImageResizeRequest request) {
+//        try {
+//            Resource loadedImage = loadImage(request.getOriginalFileName());
+//            String thumbnailFileName = "thumbnail_" + request.getOriginalFileName();
+//            Path thumbnailPath = thumbnailFolder.resolve(thumbnailFileName).normalize();
+//            if (Files.exists(thumbnailPath)) {
+//                return;
+//            }
+//            BufferedImage image = ImageIO.read(loadedImage.getInputStream());
+//            BufferedImage thumbnail = Thumbnails.of(image).size(400, 400).asBufferedImage();
+//            String[] writerFormats = ImageIO.getWriterFormatNames();
+//            String format = "";
+//            for (String writerFormat : writerFormats) {
+//                if (loadedImage.getFilename().endsWith(writerFormat)) {
+//                    format = writerFormat;
+//                    break;
+//                }
+//            }
+//            if (format.isEmpty()) {
+//                throw new RuntimeException("Could not determine image format!");
+//            }
+//            if (ImageIO.write(thumbnail, format, thumbnailPath.toFile())) {
+//                Optional<Image> saveImage = imageRepository.findById(request.getId());
+//                if (saveImage.isPresent()) {
+//                    saveImage.get().setThumbnailFileName(thumbnailFileName);
+//                    imageRepository.save(saveImage.get());
+//                }
+//            }
+//        } catch (Exception e) {
+//            throw new RuntimeException("Could not resize the image. Error: " + e.getMessage());
+//        }
+//    }
+
     @Async
     @Override
     public void resizeImage(ImageResizeRequest request) {
@@ -124,7 +160,20 @@ public class ImageServiceImpl implements ImageService {
                 return;
             }
             BufferedImage image = ImageIO.read(loadedImage.getInputStream());
-            BufferedImage thumbnail = Thumbnails.of(image).size(200, 200).asBufferedImage();
+
+            double aspectRatio = (double) image.getWidth() / image.getHeight();
+            int newWidth, newHeight;
+            if (aspectRatio > 1) {
+                newWidth = 400;
+                newHeight = (int) Math.round(newWidth / aspectRatio);
+            } else {
+                newHeight = 400;
+                newWidth = (int) Math.round(newHeight * aspectRatio);
+            }
+
+            BufferedImage thumbnail = Thumbnails.of(image).size(newWidth, newHeight).asBufferedImage();
+            thumbnail = Thumbnails.of(thumbnail).forceSize(400, 400).asBufferedImage();
+
             String[] writerFormats = ImageIO.getWriterFormatNames();
             String format = "";
             for (String writerFormat : writerFormats) {
@@ -147,4 +196,12 @@ public class ImageServiceImpl implements ImageService {
             throw new RuntimeException("Could not resize the image. Error: " + e.getMessage());
         }
     }
+
+
+    @Override
+    public List<ImageUploadResponse> getImages() {
+        return imageMapper.toListOfImagesUploadResponse(imageRepository.findAllByOrderByIdDesc());
+    }
+
+
 }

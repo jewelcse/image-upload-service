@@ -23,7 +23,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/images")
 @AllArgsConstructor
-@CrossOrigin(origins = "*", maxAge = 3600)
 public class ImageUploadController {
 
     private final ImageService imageService;
@@ -62,5 +61,10 @@ public class ImageUploadController {
                 .contentType(MediaType.parseMediaType(contentType))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
                 .body(resource);
+    }
+
+    @GetMapping
+    public ResponseEntity<?> getImages(){
+        return new ResponseEntity<>(imageService.getImages(),HttpStatus.OK);
     }
 }
