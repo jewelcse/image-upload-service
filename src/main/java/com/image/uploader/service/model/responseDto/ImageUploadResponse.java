@@ -8,5 +8,7 @@ import lombok.*;
 @Getter
 @Builder
 public class ImageUploadResponse {
+    private String imageTitle;
     private String originalFileName;
+    private String thumbnailFileName;
 }

@@ -62,4 +62,9 @@ public class ImageUploadController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
                 .body(resource);
     }
+
+    @GetMapping
+    public ResponseEntity<?> getImages(){
+        return new ResponseEntity<>(imageService.getImages(),HttpStatus.OK);
+    }
 }

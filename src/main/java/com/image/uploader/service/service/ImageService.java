@@ -19,4 +19,6 @@ public interface ImageService {
     Resource loadImage(String fileName);
 
     void resizeImage(ImageResizeRequest request);
+
+    List<ImageUploadResponse> getImages();
 }
